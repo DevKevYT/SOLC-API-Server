@@ -1,10 +1,15 @@
-# Excel-CellColor-Server
+# Excel-CellColor-Server 
 A Java Server which returns all colored cells to an uploaded Excel Sheet.
 
 ## Projects using this project:
 <a>https://github.com/floodoo/untis_phasierung/</a>
 
 ## RUN THE EXCEL SERVER:
+
+You can automatically download the latest Version with this command:
+```
+curl https://api.github.com/repos/DevKevYT/Excel-CellColor-Server/releases/latest | grep browser_download_url | grep .jar | cut -d '"' -f 4 | wget -O ExcelServer.jar -qi -
+```
 
 You may configure the .jar with two arguments:
 - Maximum amount of clients which can be connected at the same time
@@ -14,13 +19,17 @@ You should only run the .jar file inside a terminal. This way you can cconfigure
 
 Example command to run the server:
 
-```java -Xmx1G -jar excelServer.jar 10 10000```
+```
+java -Xmx1G -jar ExcelServer.jar 10 10000
+```
+
+This command will run the ExcelServer.jar file with max 10 clients and max 10 seconds connetion time (Argument passed in milliseconds).
 
 ## SERVER FUNCTIONS
 
 In general, it is possible to send commands to the server. These are simple strings sent over a TCP socket.
 Clients are resticted to request only one line of String per connection. This would usually be a command with some arguments.
-> "do-something"
+> "do-something some-argument"
 
 Data generated and sent back to the requesting client is always in this JSON format:
 ```json
