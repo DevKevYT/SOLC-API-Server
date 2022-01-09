@@ -37,10 +37,10 @@ Data generated and sent back to the requesting client is always in this JSON for
   "message": { 
     "some": "data"
   }
-  "errorMessage": "ErrorMessage"
+  "error": "ErrorMessage"
 }
 ```  
-Please note that only either the "message" or the "errorMessage" field are present in the JSON. Never both.
+Please note that only either the "message" or the "error" field are present in the JSON. Never both.
 Here is a list of the current commands for version 1.1.1:
 
 #### convertxssf
