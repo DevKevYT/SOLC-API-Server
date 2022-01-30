@@ -1,37 +1,112 @@
 # Excel-CellColor-Server 
 A Java Server which returns all colored cells to an uploaded Excel Sheet.
+Ein Java Server der alle 
 
 ## Projects using this project:
 <a>https://github.com/floodoo/untis_phasierung/</a>
 
-## RUN THE EXCEL SERVER:
+## Allgemeine Informationen
 
-You can automatically download the latest Version with this command:
+Der Server besteht hauptsächlich aus zwei .jar Dateien. Die Installation erstellt 4-5 Dateien.
+
+- `instancelog.log` (Log Datei, automatisch generiert)
+- `main.conf` (Konfigurationsdatei, automatisch generiert, veränderbar)
+- `Main.jar` (Einstiegspunkt, muss manuell ausgeführt werden)
+- `server-hook.jar` (Automatischer download aus GitHub releases)
+- `backup.tmp` (Backupdatei bei einem `server-hook.jar` update)
+
+Die `Main.jar` Datei ist das Hauptprogramm welches manuell gepflegt werden muss.<br>
+Es stellt grundlegende Administrationsbefehle zur Verfügung und kümmert sich darum,
+dass die `server-hook.jar` immer auf dem neuesten Stand ist.<br>
+Das Hauptprogramm selber sollte selten Updates benötigen. (-> Sektion [Updating]())
+
+Die `server-hook.jar` kümmert sich um alles um den Server am laufen zu halten.<br>
+Sie ist nicht selbst ausführbar.<br>
+Sie lässt sich mittels der Main.jar konfigurieren, ausführen und updaten.
+
+## Installation
+
+Jeder GitHub release beinhaltet zwei Binärdateien:
+- `Main.jar` (Das Hauptprogramm wie oben beschrieben)
+- `server-hook.jar` (Die Server Datei)
+
+Um den Server zum laufen zu bringen reicht es die `Main.jar` herunterzuladen und auszuführen.
+Konfigurationsdateien werden automatisch generiert.
+Beim ersten start wird eine Fehlermeldung kommen:
 ```
-curl https://api.github.com/repos/DevKevYT/Excel-CellColor-Server/releases/latest | grep browser_download_url | grep .jar | cut -d '"' -f 4 | wget -O ExcelServer.jar -qi -
+.../server-hook.jar nicht gefunden oder ist ein Ordner. Überprüfe main.conf oder führe den Befehl 'update' aus!
 ```
+Hier reicht es den `update` Befehl auszuführen.
 
-You may configure the .jar with two arguments:
-- Maximum amount of clients which can be connected at the same time
-- Maximal amount of time a client can be connected to the server (Given in milliseconds)
-
-You should only run the .jar file inside a terminal. This way you can cconfigure both arguments as you like.
-
-Example command to run the server:
+Um die `Main.jar` auszuführen folgenden Befehl im Ordner eingeben wo die Main.jar gedownloaded wurde:
 
 ```
-java -Xmx1G -jar ExcelServer.jar 10 10000
+java -Xmx1G -jar Main.jar
+```
+## Administrator Konsole
+Die administrator Konsole ermöglicht es dir Befehle der `Main.jar` oder auch des Hooks auszuführen.<br>
+Du erkennst sie an zwei `>>` ein der Konsole.
+<br>
+<br>
+Um eine Liste von Befehlen zu erhalten, gib `help` ein.
+```
+>>help
+               help  Gibt diese Seite aus.
+     uninstall-list  Listet alle Installierten Dateien auf.
+   uninstall-delete  Löscht alle Programm Dateien inklusive des aktuellen Hooks.
+        hook-reload  Startet den Server neu
+           hook-info  Gibt Informationen über die aktuelle Server Version aus
+             update  Prüft auf eine neue Server Version und updated den Server.
+  read-log <string>  Usage: 'read-log help' for more info
+               exit     Stoppt den Server
 ```
 
-This command will run the ExcelServer.jar file with max 10 clients and max 10 seconds connetion time (Argument passed in milliseconds).
+## Server Einstellungen
+Diese Sektion beschreibt, welche Möglichkeiten es gibt das Serververhalten einzustellen.
 
-## SERVER FUNCTIONS
+### Konfigurationsdatei main.conf
+Folgende Konfigurationen werden automatisch bei der ersten ausführung erstellt:
 
-In general, it is possible to send commands to the server. These are simple strings sent over a TCP socket.
-Clients are resticted to request only one line of String per connection. This would usually be a command with some arguments.
-> "do-something some-argument"
+```
+hook-args={
+	max-clients=10.0;
+	client-timeout=10000.0;
+	port=6969;
+}
+hook-file=hook-files/server-hook.jar;
+```
 
-Data generated and sent back to the requesting client is always in this JSON format:
+- `hook-file`: Relativer oder absoluter download Pfad für die `server-hook.jar`.
+- `hook-args`: Argumente die dem `server-hook.jar` beim laden übergeben werden.
+- `max-clients`: Maximale anzahl an Clients, die gleichzeitig mit dem Server verbunden sein dürfen.
+- `client-timeout`: Maximale dauer ein Client darf mit dem Server verbunden sein, bevor die Verbindung serverwseitig getrennt wird.
+- `port`: Der Port auf dem der Server laufen soll (Optional, standart: 6969)
+
+Um änderungen an der Konfiguration wirksam zu machen gibt es mehrere Möglichkeiten:
+- Befehl `hook-reload` eingeben.
+- Befehl `exit` eingeben und `Main.jar` neu starten
+
+### Die server-hook.jar selber
+Da die Hook Datei nur eine einfache .jar Datei ist die mit einem ClassLoader geladen wird, kannst du ganz einfach selber eine erstellen!
+
+Vorraussetzung ist eine .jar Datei die eine Klasse beinhaltet mit dem Namen `Application`
+die von der abstrakten Klasse `com.devkev.main.Hook` erbt.
+Jetzt nur noch `server-hook.jar` im angegebenen Pfad in main.conf ersetzen oder einen eigenen erstellen und deine eigenen `hook-args` erstellen.
+
+## Updates
+Aktuell ist es nur möglich mittels dem Befehl `update` manuell nach neuen GitHub releases zu checken.
+Automatische updates werden bald kommen.
+Diese Updates werden aber nur die Hook Datei beeinflussen. Um die `Main.jar` zu updaten musst du 
+selber in die Github releases schauen.
+Falls eine neue Version für `Main.jar` verfügbar ist, wird es in der Release Beschreibung stehen.
+
+## Server Funktionen
+
+Es ist möglich Befehle an den Server zu senden. Das sind einfach Strings die über einen Socket gesendet werden.
+Clients sind auf einen Befehl pro Verbindung beschränkt. Üblicherweise wäre das ein Befehl mit ein paar Argumenten.
+> `do-something "some-argument"`
+
+Bis auf Befehle sollte jeglicher Datentransfer zwischen Server und Client im JSON Format erfolgen:
 ```json
 {
   "message": { 
@@ -40,31 +115,12 @@ Data generated and sent back to the requesting client is always in this JSON for
   "error": "ErrorMessage"
 }
 ```  
-Please note that only either the "message" or the "error" field are present in the JSON. Never both.
-Here is a list of the current commands for version 1.1.1:
+Bitte beachte, dass immer nur "message" oder "error" im der JSON existieren. Niemals beide gleichzeitig.
+Hier ist eine Liste mit Befehlen die mit der aktuellen `server-hook.jar` möglich sind:
 
 #### convertxssf
-* This commands expects no arguments. When the response "ready" is sent, the server expects the excel file as stream.
-When finished, the server will response with a list of cells with their x and y index and their color
-
-## CHANGELOG
-
-### 1.0.1 (OBSOLETE!)
-- Fixing a vulnerability
-- More detailed logging for better minitoring
-- Only errors are logged
-- Arguments can become infinite if a value 0 or below 0 is provided.
-
-### 1.1.0
-- Logfile creation "instancelog.log".
-- Server admin commands: 
-    - A list can be called with "help"
-    - You can also execute shell commands
-- Changed the 'convertxsff' client command flow. `!Aktueller client nicht mehr mit 1.0.1 kompatibel!`
-
-### 1.1.1
-- Fixed an issue, where there would always be an error thrown on the first client connection of an instance.
-- Various more bugfixes
+* Dieser Befehl erwartet keine Argumente. Wenn eine bestätigung "ready" vom Server gesendet wurde
+erwartet der Server eine Excel Datei. Wenn diese Verarbeitet wurde gibt der Server ein Array mit Zellenfarben zurück.
 
 # Excel Server dependencies:
 
