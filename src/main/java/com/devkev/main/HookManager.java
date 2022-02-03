@@ -41,7 +41,7 @@ public class HookManager {
 		if(defaultHook.exists() && !defaultHook.isDirectory()) {
 			loadHook(defaultHook);
 		} else {
-			Main.logger.logError(defaultHook.getAbsolutePath() + " nicht gefunden oder ist ein Ordner. Überprüfe excel-server.conf oder führe den Befehl 'update' aus!", true);
+			Main.logger.logError("------------------\n" + defaultHook.getAbsolutePath() + " nicht gefunden oder ist ein Ordner.\nÜberprüfe excel-server.conf oder führe den Befehl 'update' aus!\n------------------", true);
 		}
 		
 		new Thread(new Runnable() {
@@ -207,6 +207,8 @@ public class HookManager {
 		return downloadFile;
 	}
 	
+	//Hook Datei MINOR Versionen müssen in der Version der Main MINOR Version entsprechen
+	//Main Minor Versionen werden geändert, wenn sie nicht mit älteren Hooks kompatibel sind
 	public void loadHook(ServerFileManager file) {
 		
 		Hook application;
@@ -222,13 +224,19 @@ public class HookManager {
 			try  {
 				pluginClass = loader.loadClass("Application");
 			} catch(ClassNotFoundException e) {
-				Main.logger.logError("Klasse 'Application extends Hook' nicht in .jar gefunden. Stelle sicher, dass diese Date als Hook verifiziert werden kann. Führe den Befehl 'update' aus um die neueste Server Version herunterzuladen!", true);
+				Main.logger.logError("------------------\nKlasse 'Application extends Hook' nicht in .jar gefunden.\nStelle sicher, dass diese Date als Hook verifiziert werden kann.\nFühre den Befehl 'update' aus um die neueste Server Version herunterzuladen!\n------------------", true);
 				loader.close();
 				return;
 			}
 			
 			Main.config = new SettingsHandler();
 			application = (Hook) pluginClass.getConstructor().newInstance();
+			
+			if(application.hookVersion.MINOR != Main.version.MINOR) {
+				Main.logger.logError("------------------\nHook (Version " + application.hookVersion + ") ist nicht kompatibel mit Main Programm (Version " + Main.version + ").\nLade die neueste \"Main.jar\"m unter https://github.com/DevKevYT/Excel-CellColor-Server/releases herunter!\n------------------", true);
+				loader.close();
+				return;
+			}
 			
 			if(this.application != null) {
 				this.application.shutdown();

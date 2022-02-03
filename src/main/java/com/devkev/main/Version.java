@@ -24,14 +24,16 @@ public class Version {
 	
 	/**@return true if version1 is older than version2*/
 	public static boolean isOlder(Version v1, Version v2) {
-		if(v1.MAJOR >= v2.MAJOR) {
-			if(v1.MINOR >= v2.MINOR) {
-				if(v1.PATCH >= v2.PATCH) {
-					return false;
-				}
-			}
+		if(v1.MAJOR < v2.MAJOR) {
+			return true;
 		}
-		return true;
+		if(v1.MAJOR <= v2.MAJOR && v1.MINOR < v2.MINOR) {
+			return true;
+		}
+		if(v1.MAJOR <= v2.MAJOR && v1.MINOR <= v2.MINOR && v1.PATCH < v2.PATCH) {
+			return true;
+		}
+		return false;
 	}
 	
 	/**A version should be notet like this: x.x.x

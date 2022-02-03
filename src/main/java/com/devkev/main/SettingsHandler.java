@@ -7,6 +7,10 @@ import com.sn1pe2win.config.dataflow.Variable;
 
 public class SettingsHandler {
 	
+	public interface ConfigModification {
+		public void modify(Node node);
+	}
+	
 	public static final String SETTINGS_FILE_NAME = "main.conf";
 	private Node settings;
 	public ServerFileManager file;
@@ -64,6 +68,15 @@ public class SettingsHandler {
 	
 	public Node getHookArguments() {
 		return settings.getCreateNode("hook-args");
+	}
+	
+	public void modifyConfig(ConfigModification modification) {
+		modification.modify(settings);
+		settings.save(true);
+	}
+	
+	public Node getConfig() {
+		return settings;
 	}
 	
 	private void generateConfigFile(File file) throws IllegalArgumentException, Exception {

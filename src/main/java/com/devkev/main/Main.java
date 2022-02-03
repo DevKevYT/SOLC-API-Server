@@ -5,7 +5,7 @@ public class Main {
 	
 	public static Logger logger;
 	public static SettingsHandler config;
-	public static final Version version = Version.of("2.0.0");
+	public static final Version version = Version.of("2.1.0");
 	
 	public static void main(String[] args) throws IllegalArgumentException, Exception  {
 		logger = new Logger();
@@ -14,6 +14,7 @@ public class Main {
 		System.out.println();
 		
 		config = new SettingsHandler();
+		
 		new HookManager();
 	}
 	

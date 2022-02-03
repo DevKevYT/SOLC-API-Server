@@ -17,6 +17,8 @@ public class Logger {
 	
 	private static final DateFormat format = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
 	
+	public int lines = 0;
+	
 	Logger() {
 		logFile = new ServerFileManager("instancelog.log", true);
 		try {
@@ -37,6 +39,12 @@ public class Logger {
 		}
 	}
 	
+	public void clearLog() throws IOException {
+		lines = 0;
+		fileWriter.write("");
+		fileWriter.flush();
+	}
+	
 	public void logError(String message) {
 		logError(message, false);
 	}
@@ -46,8 +54,9 @@ public class Logger {
 			System.err.println("ERROR [" + format.format(new Date(System.currentTimeMillis())) + "] " + message);
 		} else {
 			try {
-				fileWriter.append("ERROR [" + format.format(new Date(System.currentTimeMillis())) + "] " + message + "\n");
+				fileWriter.append("ERROR [" + format.format(new Date(System.currentTimeMillis())) + "] " + message.replace("\n", "") + "\n");
 				fileWriter.flush();
+				lines++;
 				
 				if(console) {
 					System.err.println(message);
@@ -69,7 +78,7 @@ public class Logger {
 			try {
 				fileWriter.append("INFO [" + format.format(new Date(System.currentTimeMillis())) + "] " + message.replace("\n", "") + "\n");
 				fileWriter.flush();
-				
+				lines++;
 				if(console) {
 					System.out.println(message);
 				}
