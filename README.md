@@ -126,7 +126,7 @@ Antwort Codes 0-99 sind lediglich Statusmeldungen.
 Codes vom 100-... sind Fehlercodes.
 Eine Liste aller möglichen Codes findest du unter server-hook/Codes.java
 
-# Excel Server dependencies:
+# SOLC-API Server dependencies:
 
 - <a>https://github.com/DevKevYT/devscript</a> version: '1.9.4'<br>
 - <a>https://mvnrepository.com/artifact/org.apache.poi/poi</a> version: '5.1.0'<br>
