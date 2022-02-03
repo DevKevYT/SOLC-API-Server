@@ -18,7 +18,7 @@ Der Server besteht hauptsächlich aus zwei .jar Dateien. Die Installation erstel
 Die `Main.jar` Datei ist das Hauptprogramm welches manuell gepflegt werden muss.<br>
 Es stellt grundlegende Administrationsbefehle zur Verfügung und kümmert sich darum,
 dass die `server-hook.jar` immer auf dem neuesten Stand ist.<br>
-Das Hauptprogramm selber sollte selten Updates benötigen. (-> Sektion [Updating]())
+Das Hauptprogramm selber sollte selten Updates benötigen. (-> Sektion [Updating](https://github.com/DevKevYT/SOLC-API-Server/edit/main/README.md#updates))
 
 Die `server-hook.jar` kümmert sich um alles um den Server am laufen zu halten.<br>
 Sie ist nicht selbst ausführbar.<br>
@@ -127,7 +127,6 @@ Codes vom 100-... sind Fehlercodes.
 Eine Liste aller möglichen Codes findest du unter server-hook/Codes.java
 
 # SOLC-API Server dependencies:
-
 - <a>https://github.com/DevKevYT/devscript</a> version: '1.9.4'<br>
 - <a>https://mvnrepository.com/artifact/org.apache.poi/poi</a> version: '5.1.0'<br>
 - <a>https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml</a> version: '5.1.0'<br>
