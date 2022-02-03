@@ -100,45 +100,31 @@ Diese Updates werden aber nur die Hook Datei beeinflussen. Um die `Main.jar` zu 
 selber in die Github releases schauen.
 Falls eine neue Version für `Main.jar` verfügbar ist, wird es in der Release Beschreibung stehen.
 
-# Server Funktionen
+# Datentransfer
 
-Es ist möglich Befehle an den Server zu senden. Das sind einfach Strings die über einen Socket gesendet werden.
-Clients sind auf einen Befehl pro Verbindung beschränkt. Üblicherweise wäre das ein Befehl mit ein paar Argumenten.
-> `do-something "some-argument"`
+Es ist möglich Befehle an den Server zu senden. Das sind einfach Strings die über einen Socket gesendet werden. Maximale Zeichenlänge beträgt 6000.
+Clients sind auf einen Befehl pro Verbindung beschränkt. Üblicherweise wäre das ein Befehl mit ein paar Parametern.<br>
+`befehl "ein-parameter"`
 
-Bis auf Befehle sollte jeglicher Datentransfer zwischen Server und Client im JSON Format erfolgen:
+Bis auf Befehle sollte jeglicher Datentransfer zwischen Server und Client im JSON Format erfolgen.
+Standartmäßig sendet der Server Antorten im folgenden Format:
+
 ```json
 {
-  "message": { 
-    "some": "data"
-  }
-  "error": "ErrorMessage"
+  "data": "..",
+  "code": 0
 }
-```  
-Bitte beachte, dass immer nur "message" oder "error" im der JSON existieren. Niemals beide gleichzeitig.
-Hier ist eine Liste mit Befehlen die mit der aktuellen `server-hook.jar` möglich sind:
-
-Es folgt eine Liste möglicher Befehle, sowie welche Funktionen sie bereitstellen:
-
-### convertxssf
-* Dieser Befehl erwartet keine Argumente. Wenn eine bestätigung "ready" vom Server gesendet wurde
-erwartet der Server eine Excel Datei. Wenn diese Verarbeitet wurde gibt der Server ein Array mit Zellenfarben zurück.
-
-### upload-file
-**Argumente**
-* JSESSIONID - Die Session ID eines eingeloggten Clients
-* Token - Der Bearer Token eines eingeloggten Clients
-* KlasseID - Die ID der Klasse
-* blockStart - Der Start des Blocks für den die Phasierung ausgelegt ist. Im Format YYYYMMDD
-* blockEnd - Das Ende des Blocks für den die Phasierung ausgelegt ist. Im Format YYYYMMDD
-
-**Beispiel**
-upload-file "d9dz8939e249" "qr3o8azd8edsjd0e9..." "1234" "20220101" "20220101"
-
-Wenn alle Credentials Korrekt sind erwartet der Server eine Datei als Stream mit folgender Antwort:
-Code: 1
-Message: "ready-for-file"
-
+```
+Fehlernachricht:
+```json
+{
+  "error": "Fehler Nachricht",
+  "code": 100
+}
+```
+Antwort Codes 0-99 sind lediglich Statusmeldungen.
+Codes vom 100-... sind Fehlercodes.
+Eine Liste aller möglichen Codes findest du unter server-hook/Codes.java
 
 # Excel Server dependencies:
 
