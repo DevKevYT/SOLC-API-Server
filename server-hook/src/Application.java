@@ -15,7 +15,7 @@ public class Application extends Hook {
 	Server server;
 	
 	public Application() {
-		super(Version.of("2.0.3")); 
+		super(Version.of("2.1.0")); 
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class Application extends Hook {
 			@Override
 			public Command[] createLib() {
 				return new Command[] {
-					new Command("auto-update", "string ...", "<enable <[daily,weekly,monthly]> <hour-of-day[0-24]> | disable>") {
+					new Command("auto-update", "string ...", "(COMING SOON ...) <enable <[daily,weekly,monthly]> <hour-of-day[0-24]> | disable>") {
 						@Override
 						public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
 							return null;

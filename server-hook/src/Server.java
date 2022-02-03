@@ -49,8 +49,14 @@ public class Server {
 					Process commandHandler = new Process(true);
 					BufferedReader reader = new BufferedReader(new InputStreamReader(c.client.getInputStream()));
 					
+					int max = 6000; //Maximal 6000 Zeichen
+					StringBuilder command = new StringBuilder();
+					while(command.length() < max) {
+						int character = reader.read();
+						if(character == '\n') break;
+						command.append((char) character);
+					}
 					//Einfach eine Zeile!
-					final String command = reader.readLine();
 					if(command != null) {
 						commandHandler.clearLibraries();
 						commandHandler.includeLibrary(new Commands());
@@ -62,24 +68,28 @@ public class Server {
 							@Override
 							public void log(String arg0, boolean arg1) {
 							}
+							
 							@Override
 							public void error(String arg0) {
-								Main.logger.logError("Error while executing command: " + command + ": " + arg0);
-								c.status = 1;
+								Main.logger.logError("Error while executing command: " + command + ": " + arg0 + " (Exit Code: " + c.status + ")");
+								//Send error message
+								try {
+									c.writer.write("{\"error\": \"" + arg0 + "\",\"code\": " + c.status + "}");
+									c.writer.flush();
+								} catch (IOException e) {}
 							}
 						});
 						
-						commandHandler.execute(command, false);
+						commandHandler.execute(command.toString(), false);
 					}
 				} catch (IOException e) {
-					c.status = 1;
-					//e.printStackTrace();
+					c.status = Codes.CODE_UNKNOWN_ERROR;
 				}
 				
 				closeConnection(c);
 				
-				if(c.status == 1) {
-					Main.logger.logError("Closed session " + c.sessionId + " (" + (c.status == 0 ? "SUCCESS" : "ERROR") + ")");
+				if(c.status >= 100) { /**Codes >= 100 sind Fehlercodes: @see Codes interface*/
+					Main.logger.logError("Closed session " + c.sessionId + " (Code: " + c.status + ")");
 					Main.logger.log(activeClients.size() + " active connections.");
 				}
 				

@@ -21,7 +21,7 @@ public class Connection  {
 	public static final byte STATUS_OK = 0;
 	public static final byte STATUS_ERROR = 1;
 	
-	public byte status = 0;
+	public int status = Codes.CODE_UNKNOWN_ERROR;
 	
 	public Connection(Socket client) throws IOException {
 		this.sessionId = SESSION_COUNTER;
@@ -42,5 +42,11 @@ public class Connection  {
 	public synchronized void activate() {
 		this.startTime = System.currentTimeMillis();
 		this.thread.start();
+	}
+	
+	//Bitte im JSON Format
+	public void sendMessage(String json) throws IOException {
+		writer.write(json);
+		writer.flush();
 	}
 }
