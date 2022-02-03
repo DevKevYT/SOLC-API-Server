@@ -1,50 +1,50 @@
-# Excel-CellColor-Server 
-A Java Server which returns all colored cells to an uploaded Excel Sheet.
-Ein Java Server der alle 
+# SOL-Connect API
+Ein Java Server der Funktionen fÃ¼r die SOl-Connect App als Pseudo API bereitstellt.
+Versichedene Funktionen kÃ¶nnen [hier](https://github.com/DevKevYT/Excel-CellColor-Server/edit/main/README.md#server-funktionen) eingesehen werden.
 
 ## Projects using this project:
-<a>https://github.com/floodoo/untis_phasierung/</a>
+<a>https://github.com/floodoo/SOL-Connect/</a>
 
 ## Allgemeine Informationen
 
-Der Server besteht hauptsächlich aus zwei .jar Dateien. Die Installation erstellt 4-5 Dateien.
+Der Server besteht hauptsÃ¤chlich aus zwei .jar Dateien. Die Installation erstellt 4-5 Dateien.
 
 - `instancelog.log` (Log Datei, automatisch generiert)
-- `main.conf` (Konfigurationsdatei, automatisch generiert, veränderbar)
-- `Main.jar` (Einstiegspunkt, muss manuell ausgeführt werden)
+- `main.conf` (Konfigurationsdatei, automatisch generiert, verÃ¤nderbar)
+- `Main.jar` (Einstiegspunkt, muss manuell ausgefÃ¼hrt werden)
 - `server-hook.jar` (Automatischer download aus GitHub releases)
 - `backup.tmp` (Backupdatei bei einem `server-hook.jar` update)
 
 Die `Main.jar` Datei ist das Hauptprogramm welches manuell gepflegt werden muss.<br>
-Es stellt grundlegende Administrationsbefehle zur Verfügung und kümmert sich darum,
+Es stellt grundlegende Administrationsbefehle zur VerfÃ¼gung und kÃ¼mmert sich darum,
 dass die `server-hook.jar` immer auf dem neuesten Stand ist.<br>
-Das Hauptprogramm selber sollte selten Updates benötigen. (-> Sektion [Updating]())
+Das Hauptprogramm selber sollte selten Updates benÃ¶tigen. (-> Sektion [Updating]())
 
-Die `server-hook.jar` kümmert sich um alles um den Server am laufen zu halten.<br>
-Sie ist nicht selbst ausführbar.<br>
-Sie lässt sich mittels der Main.jar konfigurieren, ausführen und updaten.
+Die `server-hook.jar` kÃ¼mmert sich um alles um den Server am laufen zu halten.<br>
+Sie ist nicht selbst ausfÃ¼hrbar.<br>
+Sie lÃ¤sst sich mittels der Main.jar konfigurieren, ausfÃ¼hren und updaten.
 
 ## Installation
 
-Jeder GitHub release beinhaltet zwei Binärdateien:
+Jeder GitHub release beinhaltet zwei BinÃ¤rdateien:
 - `Main.jar` (Das Hauptprogramm wie oben beschrieben)
 - `server-hook.jar` (Die Server Datei)
 
-Um den Server zum laufen zu bringen reicht es die `Main.jar` herunterzuladen und auszuführen.
+Um den Server zum laufen zu bringen reicht es die `Main.jar` herunterzuladen und auszufÃ¼hren.
 Konfigurationsdateien werden automatisch generiert.
 Beim ersten start wird eine Fehlermeldung kommen:
 ```
-.../server-hook.jar nicht gefunden oder ist ein Ordner. Überprüfe main.conf oder führe den Befehl 'update' aus!
+.../server-hook.jar nicht gefunden oder ist ein Ordner. ÃœberprÃ¼fe main.conf oder fÃ¼hre den Befehl 'update' aus!
 ```
-Hier reicht es den `update` Befehl auszuführen.
+Hier reicht es den `update` Befehl auszufÃ¼hren.
 
-Um die `Main.jar` auszuführen folgenden Befehl im Ordner eingeben wo die Main.jar gedownloaded wurde:
+Um die `Main.jar` auszufÃ¼hren folgenden Befehl im Ordner eingeben wo die Main.jar gedownloaded wurde:
 
 ```
 java -Xmx1G -jar Main.jar
 ```
 ## Administrator Konsole
-Die administrator Konsole ermöglicht es dir Befehle der `Main.jar` oder auch des Hooks auszuführen.<br>
+Die administrator Konsole ermÃ¶glicht es dir Befehle der `Main.jar` oder auch des Hooks auszufÃ¼hren.<br>
 Du erkennst sie an zwei `>>` ein der Konsole.
 <br>
 <br>
@@ -53,19 +53,19 @@ Um eine Liste von Befehlen zu erhalten, gib `help` ein.
 >>help
                help  Gibt diese Seite aus.
      uninstall-list  Listet alle Installierten Dateien auf.
-   uninstall-delete  Löscht alle Programm Dateien inklusive des aktuellen Hooks.
+   uninstall-delete  LÃ¶scht alle Programm Dateien inklusive des aktuellen Hooks.
         hook-reload  Startet den Server neu
-           hook-info  Gibt Informationen über die aktuelle Server Version aus
-             update  Prüft auf eine neue Server Version und updated den Server.
+           hook-info  Gibt Informationen Ã¼ber die aktuelle Server Version aus
+             update  PrÃ¼ft auf eine neue Server Version und updated den Server.
   read-log <string>  Usage: 'read-log help' for more info
                exit     Stoppt den Server
 ```
 
 ## Server Einstellungen
-Diese Sektion beschreibt, welche Möglichkeiten es gibt das Serververhalten einzustellen.
+Diese Sektion beschreibt, welche MÃ¶glichkeiten es gibt das Serververhalten einzustellen.
 
 ### Konfigurationsdatei main.conf
-Folgende Konfigurationen werden automatisch bei der ersten ausführung erstellt:
+Folgende Konfigurationen werden automatisch bei der ersten ausfÃ¼hrung erstellt:
 
 ```
 hook-args={
@@ -76,13 +76,13 @@ hook-args={
 hook-file=hook-files/server-hook.jar;
 ```
 
-- `hook-file`: Relativer oder absoluter download Pfad für die `server-hook.jar`.
-- `hook-args`: Argumente die dem `server-hook.jar` beim laden übergeben werden.
-- `max-clients`: Maximale anzahl an Clients, die gleichzeitig mit dem Server verbunden sein dürfen.
+- `hook-file`: Relativer oder absoluter download Pfad fÃ¼r die `server-hook.jar`.
+- `hook-args`: Argumente die dem `server-hook.jar` beim laden Ã¼bergeben werden.
+- `max-clients`: Maximale anzahl an Clients, die gleichzeitig mit dem Server verbunden sein dÃ¼rfen.
 - `client-timeout`: Maximale dauer ein Client darf mit dem Server verbunden sein, bevor die Verbindung serverwseitig getrennt wird.
 - `port`: Der Port auf dem der Server laufen soll (Optional, standart: 6969)
 
-Um änderungen an der Konfiguration wirksam zu machen gibt es mehrere Möglichkeiten:
+Um Ã¤nderungen an der Konfiguration wirksam zu machen gibt es mehrere MÃ¶glichkeiten:
 - Befehl `hook-reload` eingeben.
 - Befehl `exit` eingeben und `Main.jar` neu starten
 
@@ -94,16 +94,16 @@ die von der abstrakten Klasse `com.devkev.main.Hook` erbt.
 Jetzt nur noch `server-hook.jar` im angegebenen Pfad in main.conf ersetzen oder einen eigenen erstellen und deine eigenen `hook-args` erstellen.
 
 ## Updates
-Aktuell ist es nur möglich mittels dem Befehl `update` manuell nach neuen GitHub releases zu checken.
+Aktuell ist es nur mÃ¶glich mittels dem Befehl `update` manuell nach neuen GitHub releases zu checken.
 Automatische updates werden bald kommen.
 Diese Updates werden aber nur die Hook Datei beeinflussen. Um die `Main.jar` zu updaten musst du 
 selber in die Github releases schauen.
-Falls eine neue Version für `Main.jar` verfügbar ist, wird es in der Release Beschreibung stehen.
+Falls eine neue Version fÃ¼r `Main.jar` verfÃ¼gbar ist, wird es in der Release Beschreibung stehen.
 
-## Server Funktionen
+# Server Funktionen
 
-Es ist möglich Befehle an den Server zu senden. Das sind einfach Strings die über einen Socket gesendet werden.
-Clients sind auf einen Befehl pro Verbindung beschränkt. Üblicherweise wäre das ein Befehl mit ein paar Argumenten.
+Es ist mÃ¶glich Befehle an den Server zu senden. Das sind einfach Strings die Ã¼ber einen Socket gesendet werden.
+Clients sind auf einen Befehl pro Verbindung beschrÃ¤nkt. Ãœblicherweise wÃ¤re das ein Befehl mit ein paar Argumenten.
 > `do-something "some-argument"`
 
 Bis auf Befehle sollte jeglicher Datentransfer zwischen Server und Client im JSON Format erfolgen:
@@ -116,11 +116,29 @@ Bis auf Befehle sollte jeglicher Datentransfer zwischen Server und Client im JSO
 }
 ```  
 Bitte beachte, dass immer nur "message" oder "error" im der JSON existieren. Niemals beide gleichzeitig.
-Hier ist eine Liste mit Befehlen die mit der aktuellen `server-hook.jar` möglich sind:
+Hier ist eine Liste mit Befehlen die mit der aktuellen `server-hook.jar` mÃ¶glich sind:
 
-#### convertxssf
-* Dieser Befehl erwartet keine Argumente. Wenn eine bestätigung "ready" vom Server gesendet wurde
-erwartet der Server eine Excel Datei. Wenn diese Verarbeitet wurde gibt der Server ein Array mit Zellenfarben zurück.
+Es folgt eine Liste mÃ¶glicher Befehle, sowie welche Funktionen sie bereitstellen:
+
+### convertxssf
+* Dieser Befehl erwartet keine Argumente. Wenn eine bestÃ¤tigung "ready" vom Server gesendet wurde
+erwartet der Server eine Excel Datei. Wenn diese Verarbeitet wurde gibt der Server ein Array mit Zellenfarben zurÃ¼ck.
+
+### upload-file
+**Argumente**
+* JSESSIONID - Die Session ID eines eingeloggten Clients
+* Token - Der Bearer Token eines eingeloggten Clients
+* KlasseID - Die ID der Klasse
+* blockStart - Der Start des Blocks fÃ¼r den die Phasierung ausgelegt ist. Im Format YYYYMMDD
+* blockEnd - Das Ende des Blocks fÃ¼r den die Phasierung ausgelegt ist. Im Format YYYYMMDD
+
+**Beispiel**
+upload-file "d9dz8939e249" "qr3o8azd8edsjd0e9..." "1234" "20220101" "20220101"
+
+Wenn alle Credentials Korrekt sind erwartet der Server eine Datei als Stream mit folgender Antwort:
+Code: 1
+Message: "ready-for-file"
+
 
 # Excel Server dependencies:
 
