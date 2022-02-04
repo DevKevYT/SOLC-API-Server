@@ -1,8 +1,6 @@
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -37,6 +35,7 @@ public class Server {
 	}
 	
 	private void addClientConnection(Socket client) throws IOException {
+		
 		final Connection c = new Connection(client);
 		
 		//System.out.println("Starting session: " + c.sessionId);
@@ -47,15 +46,9 @@ public class Server {
 				//Maximal einen Command pro connection!
 				try {
 					Process commandHandler = new Process(true);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(c.client.getInputStream()));
 					
-					int max = 6000; //Maximal 6000 Zeichen
-					StringBuilder command = new StringBuilder();
-					while(command.length() < max) {
-						int character = reader.read();
-						if(character == '\n') break;
-						command.append((char) character);
-					}
+					String command = c.read();
+					
 					//Einfach eine Zeile!
 					if(command != null) {
 						commandHandler.clearLibraries();
@@ -71,7 +64,7 @@ public class Server {
 							
 							@Override
 							public void error(String arg0) {
-								Main.logger.logError("Error while executing command: " + command + ": " + arg0 + " (Exit Code: " + c.status + ")");
+								Main.logger.logError("Error while executing command: " + (arg0.length() > 100 ? arg0.substring(0, 100) : arg0) + " (Exit Code: " + c.status + ")");
 								//Send error message
 								try {
 									c.writer.write("{\"error\": \"" + arg0 + "\",\"code\": " + c.status + "}");
@@ -79,8 +72,7 @@ public class Server {
 								} catch (IOException e) {}
 							}
 						});
-						
-						commandHandler.execute(command.toString(), false);
+						commandHandler.execute(command, false);
 					}
 				} catch (IOException e) {
 					c.status = Codes.CODE_UNKNOWN_ERROR;

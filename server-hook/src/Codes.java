@@ -7,7 +7,10 @@ public interface Codes {
 	
 	//Codes 0-99 keine Errors
 	public static final int CODE_SUCCESS = 0;
+	//Einkommende Datei
 	public static final int CODE_READY = 1;
+	//Ausgehende Datei
+	public static final int CODE_SEND_READY = 2;
 	
 	//Codes 100-... Error codes
 	public static final int CODE_UNKNOWN_ERROR = 100;

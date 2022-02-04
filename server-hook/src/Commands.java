@@ -69,7 +69,7 @@ public class Commands extends Library {
 	public Command[] createLib() {
 		return new Command[] {
 			
-			new Command("download-file", "string", "download-file <klasseid> Stellt die Date als Stream bereit") {
+			new Command("download-file", "string", "download-file <klasseid> Stellt die Date als Stream bereit. Wenn eine Nachricht mit code 2 vom Server kommt muss der Befehl 'ready-to-recieve' zurückgesendet werden. Dann kann die Datei empfangen werden") {
 				@Override
 				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
 					Connection c = (Connection) arg1.getVariable("connection", arg1.getMain());
@@ -81,18 +81,33 @@ public class Commands extends Library {
 							if(filepath != Variable.UNKNOWN) {
 								File sheet = new File(filepath.getAsString());
 								if(sheet.exists()) {
-									try (FileInputStream fileReadStream = new FileInputStream(sheet)) {
-							            int read;
-							            byte[] bytes = new byte[8192];
-							            while ((read = fileReadStream.read(bytes)) != -1) {
-							            	c.client.getOutputStream().write(bytes, 0, read);
-							            }
-							            
-							            c.status = Codes.CODE_SUCCESS;
-							            c.terminateConnection();
-							        } catch (FileNotFoundException e1) {
-										e1.printStackTrace();
-									} catch (IOException e1) {
+									
+									try {
+										c.sendMessage(generateJSON(Codes.CODE_SEND_READY, "\"ready-to-send\""));
+									} catch (IOException e) {
+										return;
+									}
+									//Warte auf Client Bestätigung
+									try {
+										String approve = c.read();
+										
+										if(approve.equals("ready-to-recieve")) {
+											try (FileInputStream fileReadStream = new FileInputStream(sheet)) {
+									            int read;
+									            byte[] bytes = new byte[8192];
+									            while ((read = fileReadStream.read(bytes)) != -1) {
+									            	c.client.getOutputStream().write(bytes, 0, read);
+									            }
+									            
+									            c.status = Codes.CODE_SUCCESS;
+									            c.terminateConnection();
+									        } catch (FileNotFoundException e1) {
+												e1.printStackTrace();
+											} catch (IOException e1) {
+											}
+										}
+									} catch (IOException e) {
+										return;
 									}
 								} else {
 									c.status = Codes.CODE_ENTRY_MISSING;

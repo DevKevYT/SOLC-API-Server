@@ -15,7 +15,7 @@ public class Application extends Hook {
 	Server server;
 	
 	public Application() {
-		super(Version.of("2.1.0")); 
+		super(Version.of("2.1.1")); 
 	}
 
 	@Override
