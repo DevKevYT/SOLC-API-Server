@@ -41,7 +41,17 @@ public class HookManager {
 		if(defaultHook.exists() && !defaultHook.isDirectory()) {
 			loadHook(defaultHook);
 		} else {
-			Main.logger.logError("------------------\n" + defaultHook.getAbsolutePath() + " nicht gefunden oder ist ein Ordner.\nÜberprüfe excel-server.conf oder führe den Befehl 'update' aus!\n------------------", true);
+			Main.logger.logError("------------------\n" + defaultHook.getAbsolutePath() + " nicht gefunden oder ist ein Ordner.\nÜberprüfe auf neue Version ...!\n------------------", true);
+			try {
+				if(downloadUpdate()) {
+					Main.logger.log("Server auf dem neuesten Stand.", true);
+				} else {
+					Main.logger.logError("Update fehlgeschlagen. Bitte versuche es erneut oder installiere die hook Datei manuell!");
+				}
+			} catch (IOException e) {
+				Main.logger.logError("Update fehlgeschlagen. Bitte versuche es erneut oder installiere die hook Datei manuell!");
+				e.printStackTrace();
+			}
 		}
 		
 		new Thread(new Runnable() {
@@ -84,9 +94,9 @@ public class HookManager {
 						String command = scanner.nextLine();
 						executor.execute(command, false);
 					} catch(Exception e) {
+						Main.logger.logError("Console not available");
 						scanner.close();
-						scanner = new Scanner(System.in);
-						continue;
+						break;
 					}
 				}
 			}
@@ -233,7 +243,7 @@ public class HookManager {
 			application = (Hook) pluginClass.getConstructor().newInstance();
 			
 			if(application.hookVersion.MINOR != Main.version.MINOR) {
-				Main.logger.logError("------------------\nHook (Version " + application.hookVersion + ") ist nicht kompatibel mit Main Programm (Version " + Main.version + ").\nLade die neueste \"Main.jar\"m unter https://github.com/DevKevYT/Excel-CellColor-Server/releases herunter!\n------------------", true);
+				Main.logger.logError("------------------\nHook (Version " + application.hookVersion + ") ist nicht kompatibel mit Main Programm (Version " + Main.version + ").\nLade die neueste \"Main.jar\" unter https://github.com/DevKevYT/Excel-CellColor-Server/releases herunter!\n------------------", true);
 				loader.close();
 				return;
 			}
