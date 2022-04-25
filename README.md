@@ -82,7 +82,7 @@ hook-file=hook-files/server-hook.jar;
 - `max-clients`: Maximale anzahl an Clients, die gleichzeitig mit dem Server verbunden sein dürfen
 - `client-timeout`: Maximale dauer ein Client darf mit dem Server verbunden sein, bevor die Verbindung serverwseitig getrennt wird
 - `port`: Der Port auf dem der Server laufen soll (Optional, standart: 6969)
-- `1578000`: Nach wie vielen Sekunden eine Phasierung automatisch gelöscht werden soll, wenn vorher keine neue hochgeladen wurde
+- `phase-deletion-after`: Nach wie vielen Sekunden eine Phasierung automatisch gelöscht werden soll, wenn vorher keine neue hochgeladen wurde
 
 Um änderungen an der Konfiguration wirksam zu machen gibt es mehrere Möglichkeiten:
 - Befehl `hook-reload` eingeben.
