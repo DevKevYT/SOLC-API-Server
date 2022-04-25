@@ -35,7 +35,7 @@ public class Connection  {
 	}
 	
 	public String read() throws IOException {
-		int max = 500; //Maximal 500 Zeichen
+		int max = 1000; //Maximal 500 Zeichen
 		StringBuilder command = new StringBuilder();
 		while(command.length() < max) {
 			int character = reader.read();

@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +34,27 @@ import com.google.gson.JsonObject;
 import com.sn1pe2win.config.dataflow.Node;
 import com.sn1pe2win.config.dataflow.Variable;
 
+
+//DONE Last downloaded
+//TODOm Client command list (Admin command)
+//TODO Admin commands to delet phaseplans etc.
+//TODO delete phase
+//TODO command to list config content 
+//TODO Session id zu logs + Zeile + Klasse zu logs
+//TODO Phasierung löschen wenn nach x Tagen kein Download gemacht wurde.
+
+//TODO handle unreloaded config
 public class Commands extends Library {
 	
 	public static final int MAX_CELL_ENTRIES = 500;
+	public static final String versionJson;
+	
+	static {
+		versionJson = generateJSON(Codes.CODE_SUCCESS, "{\"displayValue\": \"" + Application.VERSION.toString() + 
+				"\", \"version\": {\"major\": " + Application.VERSION.MAJOR 
+				+ ", \"minor\": " + Application.VERSION.MINOR 
+				+ ", \"patch\": " + Application.VERSION.PATCH + "}}");
+	}
 	
 	public Commands() {
 		super("Commands");
@@ -64,10 +84,25 @@ public class Commands extends Library {
 	public static final String generateErrorJSON(int code, String errorMessage) {
 		return "{\"error\": \"" + errorMessage + "\",\"code\": " + code + "}";
 	}
-
+	
+	final SimpleDateFormat format = new SimpleDateFormat("YYYYMMdd");
+	
 	@Override
 	public Command[] createLib() {
 		return new Command[] {
+				
+			new Command("version", "", "Gibt die Serverversion zurück. > 2.1.5") {
+				@Override
+				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
+					Connection c = (Connection) arg1.getVariable("connection", arg1.getMain());
+					try {
+						c.sendMessage(versionJson);
+					} catch (IOException e) {
+						Main.logger.logError("Failed to send 'ready-to-recieve' message to client: " + e.getLocalizedMessage());
+					}
+					return null;
+				}
+			},
 			
 			new Command("download-file", "string", "download-file <klasseid> Stellt die Date als Stream bereit. Wenn eine Nachricht mit code 2 vom Server kommt muss der Befehl 'ready-to-recieve' zurückgesendet werden. Dann kann die Datei empfangen werden") {
 				@Override
@@ -85,6 +120,7 @@ public class Commands extends Library {
 									try {
 										c.sendMessage(generateJSON(Codes.CODE_SEND_READY, "\"ready-to-send\""));
 									} catch (IOException e) {
+										Main.logger.logError("Failed to send 'ready-to-recieve' message to client: " + e.getLocalizedMessage());
 										return;
 									}
 									//Warte auf Client Bestätigung
@@ -101,22 +137,24 @@ public class Commands extends Library {
 									            
 									            c.status = Codes.CODE_SUCCESS;
 									            c.terminateConnection();
-									        } catch (FileNotFoundException e1) {
-												e1.printStackTrace();
+											} catch (FileNotFoundException e1) {
+									        	Main.logger.logError("Failed to find file to pull download data: " + filepath.getAsString() + ": " + e1.getLocalizedMessage());
 											} catch (IOException e1) {
+												Main.logger.logError("An IO Exception occurred for download file: " + filepath.getAsString() + ": " + e1.getLocalizedMessage());
 											}
 										}
 									} catch (IOException e) {
+										Main.logger.logError("Failed to recieve download approve from client");
 										return;
 									}
 								} else {
-									c.status = Codes.CODE_ENTRY_MISSING;
-									arg1.error("Sheet for subject not found");
+									c.status = Codes.CODE_FILE_MISSING;
+									arg1.error("Sheet for subject " + arg0[0].toString() + " not found");
 								}
 							} else {
 								//Corrupted. Delete
 								c.status = Codes.CODE_ENTRY_MISSING;
-								arg1.error("Subject not found");
+								arg1.error("Subject " +  arg0[0].toString() + " not found");
 								
 								entry.delete();
 								File f = new File("uploaded-sheets/" + arg0[0].toString() + "/");
@@ -144,8 +182,17 @@ public class Commands extends Library {
 							Variable endDate = entry.getAsNode().get("end");
 							Variable created = entry.getAsNode().get("created");
 							Variable owner = entry.getAsNode().get("owner");
+							Variable ownerdn = entry.getAsNode().get("ownerdn");
+							
+							String latestDownload = String.valueOf(System.currentTimeMillis());
+							entry.getAsNode().addString("last-download", latestDownload);
+							
+							if(ownerdn == Variable.UNKNOWN) {
+								entry.getAsNode().addString("ownerdn", "unknown-older-version");
+								ownerdn = entry.getAsNode().get("ownerdn");
+							}
 							if(startDate == Variable.UNKNOWN || endDate == Variable.UNKNOWN || created == Variable.UNKNOWN || owner == Variable.UNKNOWN
-									|| !startDate.isNumber() || !endDate.isNumber() || !created.isNumber() || !owner.isNumber()) {
+									|| !startDate.isNumber() || !endDate.isNumber() || !owner.isNumber()) {
 								//Corrupted. Delete
 								entry.delete();
 								Main.logger.logError("Deleting corrupted subject entry: " + arg0[0].toString());
@@ -156,8 +203,9 @@ public class Commands extends Library {
 									c.sendMessage(generateJSON(Codes.CODE_SUCCESS,
 											"{\"startDate\": " + startDate.getAsInt() 
 											+ ",\"endDate\": " + endDate.getAsInt() 
-											+ ",\"created\": " + created.getAsInt() 
-											+ ",\"fileowner\": " + owner.getAsInt() + "}"));
+											+ ",\"created\": \"" + created.getAsString() 
+											+ "\" ,\"fileowner\": " + owner.getAsInt() 
+											+ ",\"ownerDisplayName\": \"" + ownerdn.getAsString() + "\"}"));
 									c.status = Codes.CODE_SUCCESS;
 								} catch (IOException e) {
 									Main.logger.logError("Failed to send success response to client: " + e.getLocalizedMessage());
@@ -211,14 +259,19 @@ public class Commands extends Library {
 					}
 					
 					//Schritt 1: Verifiziere die SessionID:
+					Calendar calendar = Calendar.getInstance();
+					String testDate = calendar.get(Calendar.YEAR) + "" + 
+							(calendar.get(Calendar.MONTH) <= 9 ? "0" + (calendar.get(Calendar.MONTH)+1) : (calendar.get(Calendar.MONTH)+1))
+							+ (calendar.get(Calendar.DAY_OF_MONTH) <= 9 ? "0" + calendar.get(Calendar.DAY_OF_MONTH) : calendar.get(Calendar.DAY_OF_MONTH));
+					
 					Response<JsonObject> response = Gateway.POST(
 							"https://hepta.webuntis.com/WebUntis/jsonrpc.do?school=bbs1-mainz", 
-							"{\"jsonrpc\": 2.0,\"method\": \"getTimetable\",\"params\": {\"startDate\":\"20220101\",\"endDate\":\"20220101\" },\"id\": \"sol-connect\"}",
+							"{\"jsonrpc\": 2.0,\"method\": \"getTimetable\",\"params\": {\"startDate\":\"" + testDate + "\",\"endDate\":\"" + testDate + "\" },\"id\": \"sol-connect\"}",
 							Property.of("Cookie", "JSESSIONID=" + sessionId));
 					
 					if(!response.containsPayload()) {
 						c.status = Codes.CODE_MISSING_PAYLOAD;
-						arg1.error("Missing API payload. API down?");
+						arg1.error("Missing API payload. API down? (Http: " + response.httpStatus + ", error message: " + response.errorMessage + ", error code: " + response.errorCode + ")");
 						return null;
 					} else {
 						if(response.errorCode == -8520) {
@@ -234,14 +287,16 @@ public class Commands extends Library {
 								"{\"jsonrpc\": \"2.0\",\"method\":\"logout\",\"id\": \"sol-connect\"}", 
 								Property.of("Cookie", "JSESSIONID=" + sessionId));
 					} catch(Exception e) {
+						Main.logger.log("Failed to log user out");
 					}
 					
 					//Schritt 2: Verifiziere Rechte
 					Response<JsonObject> data = Gateway.GET("https://hepta.webuntis.com/WebUntis/api/rest/view/v1/app/data", Property.of("Authorization", "Bearer " + token));
 					
 					if(!data.containsPayload()) {
+						
 						c.status = Codes.CODE_MISSING_PAYLOAD;
-						arg1.error( "Missing API payload. API down?");
+						arg1.error("Missing API payload. API down? (Http: " + data.httpStatus + ", error message: " + data.errorMessage + ", error code: " + data.errorCode + ")");
 						return null;
 					} else {
 						if(data.httpStatus == 401) {
@@ -255,6 +310,7 @@ public class Commands extends Library {
 						}
 						if(data.getResponseData().getAsJsonObject("user").getAsJsonObject("person") != null) {
 							int uploaderId = data.getResponseData().getAsJsonObject("user").getAsJsonObject("person").getAsJsonPrimitive("id").getAsInt();
+							String uploaderDisplayName = data.getResponseData().getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
 							
 							//Überprüfe Berechtigung
 							if(data.getResponseData().getAsJsonObject("user").getAsJsonArray("roles") != null) {
@@ -271,34 +327,36 @@ public class Commands extends Library {
 											
 											if(entry != Variable.UNKNOWN) {
 												sheetFile = new File("uploaded-sheets/" + String.valueOf(klasseId) + "/sheet.xlsx");
-												entry.getAsNode().addNumber("created", System.currentTimeMillis());
+												entry.getAsNode().addString("created", String.valueOf(System.currentTimeMillis()));
 												entry.getAsNode().addNumber("start", startDate);
 												entry.getAsNode().addNumber("end", endDate);
 												entry.getAsNode().addNumber("owner", uploaderId);
+												entry.getAsNode().addString("ownerdn", uploaderDisplayName);
 												if(!sheetFile.exists()) {
 													sheetFile = null;
 													entry = Variable.UNKNOWN;
 												}
 											}
-											
+											String relativePath = "";
 											if(entry == Variable.UNKNOWN) {
 												//Erstelle Folder und Date
 												File userFolder = new File("uploaded-sheets/" + String.valueOf(klasseId) + "/");
 												if(!userFolder.exists()) userFolder.mkdir();
 												
-												String relativePath = "uploaded-sheets/" + String.valueOf(klasseId) + "/sheet.xlsx";
+												relativePath = "uploaded-sheets/" + String.valueOf(klasseId) + "/sheet.xlsx";
 												sheetFile = new File(relativePath);
 												Node userStorage = node.get("fileroute").getAsNode().addNode(String.valueOf(klasseId));
+												
 												userStorage.addString("file", relativePath);
-												userStorage.addNumber("created", System.currentTimeMillis());
+												userStorage.addString("created", String.valueOf(System.currentTimeMillis()));
 												userStorage.addNumber("start", startDate);
 												userStorage.addNumber("end", endDate);
 												userStorage.addNumber("owner", uploaderId);
-												
+												userStorage.addString("ownerdn", uploaderDisplayName);
 												try {
 													sheetFile.createNewFile();
 												} catch (IOException exception) {
-													exception.printStackTrace();
+													Main.logger.logError("Failed to create file for uploaded sheet under: " + relativePath + ": " + exception.getLocalizedMessage());
 												}
 											} 
 											
@@ -307,7 +365,7 @@ public class Commands extends Library {
 											try {
 												c.sendMessage(generateJSON(Codes.CODE_READY, "\"ready-for-file\""));
 											} catch (IOException e2) {
-												e2.printStackTrace();
+												Main.logger.logError("Failed to send 'ready-for-file' message to client: " + e2.getLocalizedMessage());
 												return;
 											}
 											
@@ -319,8 +377,9 @@ public class Commands extends Library {
 										                outputStream.write(bytes, 0, read);
 										            }
 										        } catch (FileNotFoundException e1) {
-													e1.printStackTrace();
+										        	Main.logger.logError("Failed to find file to write upload data: " + relativePath + ": " + e1.getLocalizedMessage());
 												} catch (IOException e1) {
+													Main.logger.logError("An IO Exception occurred for upload file: " + relativePath + ": " + e1.getLocalizedMessage());
 												}
 											}
 										});

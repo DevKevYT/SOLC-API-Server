@@ -13,9 +13,10 @@ import com.sn1pe2win.config.dataflow.Variable;
 public class Application extends Hook {
 	
 	Server server;
+	public static final Version VERSION = Version.of("2.2.0");
 	
 	public Application() {
-		super(Version.of("2.1.1")); 
+		super(VERSION); 
 	}
 
 	@Override
@@ -43,7 +44,13 @@ public class Application extends Hook {
 			port = vport.getAsInt();
 		}
 		
-		server = new Server(port, mc, t);
+		long maxd = 15780000;
+		Variable vmaxd = args.get("phase-deletion-after");
+		if(!vmaxd.isUnknown()) {
+			maxd = vmaxd.getAsLong();
+		}
+		
+		server = new Server(port, mc, t, maxd);
 	}
 	
 	@Override
@@ -53,9 +60,25 @@ public class Application extends Hook {
 			@Override
 			public Command[] createLib() {
 				return new Command[] {
+					
 					new Command("auto-update", "string ...", "(COMING SOON ...) <enable <[daily,weekly,monthly]> <hour-of-day[0-24]> | disable>") {
 						@Override
 						public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
+							return null;
+						}
+					},
+					
+					new Command("list-phase", "", "Listet alle Phasierungen auf") {
+						@Override
+						public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
+							Main.config.modifyConfig(node -> {
+								Node phases = node.getCreateNode("fileroute");
+								for(Variable entry : phases.getVariables()) {
+									if(entry.isNode()) {
+										System.out.println("ID: " + entry.getAsNode().getName() + "\nPath: " + entry.getAsNode().get("file").getAsString() + "\n");
+									}
+								}
+							});
 							return null;
 						}
 					},

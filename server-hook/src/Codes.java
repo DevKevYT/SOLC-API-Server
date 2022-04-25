@@ -21,4 +21,5 @@ public interface Codes {
 	public static final int CODE_ID_NOT_MATCH = 105;
 	public static final int CODE_HTTP_ERROR = 106;
 	public static final int CODE_ENTRY_MISSING = 107;
+	public static final int CODE_FILE_MISSING = 108;
 }

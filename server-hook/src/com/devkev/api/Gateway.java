@@ -54,7 +54,7 @@ public class Gateway {
 			InputStream stream;
 			if(responseCode >= 200 && responseCode < 400) stream = httpURLConnection.getInputStream();
 			else stream = httpURLConnection.getErrorStream();
-			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+			BufferedReader in = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
 			while ((inputLine = in.readLine()) != null) responseCollector.append(inputLine);
 			in.close();
 			
@@ -77,7 +77,7 @@ public class Gateway {
 			
 			return lastResponse;
 		} catch(Exception e) {
-			return new Response<JsonObject>(null, responseCode, "Failed to recieve response from " + url, 0);
+			return new Response<JsonObject>(null, responseCode, "Failed to recieve response from " + url + ": " + e.toString(), 0);
 		}
 	}
 	
