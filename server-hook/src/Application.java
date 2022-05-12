@@ -13,7 +13,7 @@ import com.sn1pe2win.config.dataflow.Variable;
 public class Application extends Hook {
 	
 	Server server;
-	public static final Version VERSION = Version.of("2.2.0");
+	public static final Version VERSION = Version.of("2.2.1");
 	
 	public Application() {
 		super(VERSION); 

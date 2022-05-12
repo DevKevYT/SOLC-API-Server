@@ -35,13 +35,11 @@ import com.sn1pe2win.config.dataflow.Node;
 import com.sn1pe2win.config.dataflow.Variable;
 
 
-//DONE Last downloaded
 //TODOm Client command list (Admin command)
 //TODO Admin commands to delet phaseplans etc.
 //TODO delete phase
 //TODO command to list config content 
 //TODO Session id zu logs + Zeile + Klasse zu logs
-//TODO Phasierung löschen wenn nach x Tagen kein Download gemacht wurde.
 
 //TODO handle unreloaded config
 public class Commands extends Library {
@@ -91,7 +89,7 @@ public class Commands extends Library {
 	public Command[] createLib() {
 		return new Command[] {
 				
-			new Command("version", "", "Gibt die Serverversion zurück. > 2.1.5") {
+			new Command("version", "", "Gibt die Serverversion zurück") {
 				@Override
 				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
 					Connection c = (Connection) arg1.getVariable("connection", arg1.getMain());
@@ -169,7 +167,65 @@ public class Commands extends Library {
 				}
 			},
 			
-			new Command("phase-status", "string", "Hier sind die Berechtigungen eher entspannt. Die ID ist die ID der Klasse von der die Informationen geholt soll.") {
+			new Command("phase-statuses", "string ...", "") {
+				@Override
+				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
+					Connection c = (Connection) arg1.getVariable("connection", arg1.getMain());
+					
+					String response = "{";
+					
+					int success = 0;
+					for(int i = 0; i < arg0.length; i++) {
+						Variable entry = Main.config.getConfig().getCreateNode("fileroute").get(arg0[i].toString());
+						if(entry != Variable.UNKNOWN) {
+							Node node = entry.getAsNode();
+							Variable startDate = node.get("start");
+							Variable endDate = node.get("end");
+							Variable created = node.get("created");
+							Variable owner = node.get("owner");
+							Variable ownerdn = node.get("ownerdn");
+							
+							String latestDownload = String.valueOf(System.currentTimeMillis());
+							entry.getAsNode().addString("last-download", latestDownload);
+							
+							if(ownerdn == Variable.UNKNOWN) {
+								entry.getAsNode().addString("ownerdn", "unknown-older-version");
+								ownerdn = entry.getAsNode().get("ownerdn");
+							}
+							if(startDate == Variable.UNKNOWN || endDate == Variable.UNKNOWN || created == Variable.UNKNOWN || owner == Variable.UNKNOWN
+									|| !startDate.isNumber() || !endDate.isNumber() || !owner.isNumber()) {
+								//Corrupted. Delete
+								entry.delete();
+								Main.logger.logError("Deleting corrupted subject entry: " + arg0[0].toString());
+								c.status = Codes.CODE_ENTRY_MISSING;
+								arg1.error("Subject not found.");
+							} else {
+								success ++;
+								response += "\"" + arg0[i] + "\": {\"startDate\": " + startDate.getAsInt() 
+									+ ",\"endDate\": " + endDate.getAsInt() 
+									+ ",\"created\": \"" + created.getAsString() 
+									+ "\" ,\"fileowner\": " + owner.getAsInt() 
+									+ ",\"ownerDisplayName\": \"" + ownerdn.getAsString() + "\"},";
+							}
+						}
+					}
+					
+					if(success > 0) 
+						response = response.substring(0, response.length()-1);
+					response += "}";
+					
+					try {
+						c.sendMessage(generateJSON(Codes.CODE_SUCCESS, response));
+						c.status = Codes.CODE_SUCCESS;
+					} catch (IOException e) {
+						Main.logger.logError("Failed to send payload to client: " + e.getLocalizedMessage());
+					}
+					
+					return null;
+				}
+			},
+			
+			new Command("phase-status", "string", "Hier sind die Berechtigungen eher entspannt. Die ID ist die ID der Klasse von der die Informationen geholt soll. @Deprecated.") {
 				@Override
 				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {
 					Connection c = (Connection) arg1.getVariable("connection", arg1.getMain());
@@ -222,7 +278,7 @@ public class Commands extends Library {
 			
 			new Command("upload-file", "string string string string string", 
 					"uploadfile <sessionID> <Bearertoken> <klasseID> <startDate> <endDate> "
-					+ "Die sessionID ist die SessionID einer gültigen Session. Die ID der anzufragenden Person. Achtung nutzt ein eingeloggter Client diesen Befehl wird er ausgeloggt!"
+					+ "Die sessionID ist die SessionID einer gültigen Session. Die ID der anzufragenden Person. Achtung: nutzt ein eingeloggter Client diesen Befehl wird er ausgeloggt!"
 					+ "Start und Enddate sind im standart Untis API Format anzugeben: YYYYMMDD") {
 				@Override
 				public Object execute(Object[] arg0, Process arg1, Block arg2) throws Exception {

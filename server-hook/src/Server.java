@@ -23,6 +23,8 @@ public class Server {
 	private Thread gateway;
 	private final Commands lib;
 	
+	private volatile boolean terminating = false;
+	
 	/**@param maxConnections - Maximal Anzahl an Clients die sich verbinden dürfen.
 	 * @param maxConnectionTime - Maximale Zeit, die ein Client verbunden sein darf. In Millisekunden*/
 	public Server(int port, int maxConnections, int maxConnectionTime, long maxFileDuration) {
@@ -114,6 +116,9 @@ public class Server {
 	
 	public void shutdown() {
 		Main.logger.log("Terminating active connections ...", true);
+		
+		terminating = true;
+		
 		for(int i = 0; i < activeClients.size(); i++) {
 			closeConnection(activeClients.get(i));
 			i = 0;
@@ -123,7 +128,7 @@ public class Server {
 			try {
 				listenSocket.close();
 			} catch (IOException e) {}
-			listenSocket = null;
+			//listenSocket = null;
 		}
 	}
 	
@@ -131,7 +136,7 @@ public class Server {
 		gateway = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Main.logger.log("Gateway running");
+				Main.logger.log("Server running", true);
 				try {
 					while(true) {
 						
@@ -161,9 +166,11 @@ public class Server {
 				Main.logger.logError("Port " + LISTEN_PORT + " is already occupied by another program or instance. Please change the port in the configuration or free this port on your machine", true);
 				shutdown();
 			} catch(Exception e) {
-				Main.logger.logError("Server stopped due to an exception: " + e.toString() + ". Restarting ...", true);
-				shutdown();
-				createGateway();
+				if(!terminating) {
+					Main.logger.logError("Server stopped due to an exception: " + e.toString() + ". Restarting ...", true);
+					shutdown();
+					createGateway();
+				}
 			} finally {
 				if(listenSocket != null) {
 					try {
@@ -184,9 +191,9 @@ public class Server {
 		Thread observer = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Main.logger.log("Observer running");
+				Main.logger.log("Observer running", true);
 				try {
-					while(true) {
+					while(!terminating) {
 						
 						long currentTime = System.currentTimeMillis();
 						
@@ -256,17 +263,19 @@ public class Server {
 						}
 					}
 				} catch(Exception e) {
-					Main.logger.logError("Dispatcher stopped due to an exception: " + e.toString() + ". Restarting ...", true);
+					Main.logger.logError("Observer stopped due to an exception: " + e.toString() + ". Restarting ...", true);
 					e.printStackTrace();
 					createTimeoutObserver();
 				}
 			}
-		}, "dispatcher");
+		}, "observer");
 		observer.setDaemon(true);
 		observer.start();
 	}
 	
 	public void listen() throws IOException {
+		terminating = false;
+		
 		if(listenSocket != null) return;
 		
 		try {
@@ -278,7 +287,7 @@ public class Server {
 		}
 		
 		Main.logger.log("Server started.", true);
-		System.out.println("Listening on " + LISTEN_PORT);
+		Main.logger.log("Listening on " + LISTEN_PORT, true);
 		
 		createGateway();
 		
